@@ -13,7 +13,7 @@ const app = express()
 app.use(bodyParser.json());
 app.use(cors());
 
-const port = 7000
+const port = process.env.PORT || 7000;
 
 
 
@@ -28,6 +28,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 client.connect(err => {
   console.log(err);
   const serviceCollection = client.db("serviceRepire").collection("service");
+  const reviewCollection = client.db("serviceRepire").collection("reviews");
   // perform actions on the collection object
 
 
@@ -41,6 +42,16 @@ client.connect(err => {
 })
 
 
+
+app.get('/reviews', (req, res) => {
+  reviewCollection.find({})
+      .toArray((err, documents) => {
+          
+          res.send(documents);
+      })
+})
+
+
   app.post('/addService', (req, res) => {
     const newService = req.body;
     console.log('adding new service: ', newService);
@@ -49,6 +60,16 @@ client.connect(err => {
             console.log('inserted count', result.insertedCount);
             res.send({count:result.insertedCount > 0})
         })
+})
+
+app.post('/addReview', (req, res) => {
+  const newReview = req.body;
+  console.log('adding new service: ', newReview);
+  reviewCollection.insertOne(newReview)
+      .then(result => {
+          console.log('inserted count', result.insertedCount);
+          res.send({count:result.insertedCount > 0})
+      })
 })
 
 
@@ -62,4 +83,4 @@ client.connect(err => {
 
 
 
-app.listen(port)
+app.listen(process.env.PORT || port)
