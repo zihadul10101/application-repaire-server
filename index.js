@@ -6,8 +6,8 @@ const MongoClient = require('mongodb').MongoClient;
 require('dotenv').config()
 
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vki6z.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vki6z.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 const app = express()
 
 app.use(bodyParser.json());
@@ -29,48 +29,66 @@ client.connect(err => {
   console.log(err);
   const serviceCollection = client.db("serviceRepire").collection("service");
   const reviewCollection = client.db("serviceRepire").collection("reviews");
+  const orderCollection = client.db("serviceRepire").collection("orders");
   // perform actions on the collection object
 
 
 
   app.get('/service', (req, res) => {
     serviceCollection.find({})
-        .toArray((err, documents) => {
-            
-            res.send(documents);
-        })
-})
-
-
-
-app.get('/reviews', (req, res) => {
-  reviewCollection.find({})
       .toArray((err, documents) => {
-          
-          res.send(documents);
+        res.send(documents);
       })
-})
+  })
 
+
+
+  app.get('/reviews', (req, res) => {
+    reviewCollection.find({})
+      .toArray((err, documents) => {
+        res.send(documents);
+      })
+  })
+
+
+  app.get('/orders', (req, res) => {
+    orderCollection.find({})
+      .toArray((err, documents) => {
+        res.send(documents);
+      })
+  })
+
+
+  app.post('/addOrder', (req, res) => {
+    const newOrdering = req.body;
+    console.log(newOrdering);
+    orderCollection.insertOne(newOrdering)
+      .then(result => {
+
+        res.send(result.insertedCount > 0);
+      })
+    console.log(newOrdering);
+  })
 
   app.post('/addService', (req, res) => {
     const newService = req.body;
     console.log('adding new service: ', newService);
     serviceCollection.insertOne(newService)
-        .then(result => {
-            console.log('inserted count', result.insertedCount);
-            res.send({count:result.insertedCount > 0})
-        })
-})
-
-app.post('/addReview', (req, res) => {
-  const newReview = req.body;
-  console.log('adding new service: ', newReview);
-  reviewCollection.insertOne(newReview)
       .then(result => {
-          console.log('inserted count', result.insertedCount);
-          res.send({count:result.insertedCount > 0})
+        console.log('inserted count', result.insertedCount);
+        res.send({ count: result.insertedCount > 0 })
       })
-})
+  })
+
+  app.post('/addReview', (req, res) => {
+    const newReview = req.body;
+    console.log('adding new service: ', newReview);
+    reviewCollection.insertOne(newReview)
+      .then(result => {
+        console.log('inserted count', result.insertedCount);
+        res.send({ count: result.insertedCount > 0 })
+      })
+  })
 
 
 
