@@ -1,13 +1,13 @@
 const express = require('express')
+const ObjectId = require("mongodb").ObjectID;
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const MongoClient = require('mongodb').MongoClient;
 
 require('dotenv').config()
 
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vki6z.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+
 const app = express()
 
 app.use(bodyParser.json());
@@ -30,6 +30,7 @@ client.connect(err => {
   const serviceCollection = client.db("serviceRepire").collection("service");
   const reviewCollection = client.db("serviceRepire").collection("reviews");
   const orderCollection = client.db("serviceRepire").collection("orders");
+  const adminCollection = client.db("serviceRepire").collection("admin");
   // perform actions on the collection object
 
 
@@ -58,6 +59,25 @@ client.connect(err => {
       })
   })
 
+  app.post('/isAdmin', (req, res) => {
+    const email = req.body.email;
+    console.log(email);
+    adminCollection.find({ email: email })
+        .toArray((err, admin) => {
+            res.send(admin.length > 0);
+        });
+});
+
+  app.post('/addAdmin', (req, res) => {
+    const newAdmin = req.body;
+    console.log('adding new event:', newAdmin)
+    adminCollection.insertOne(newAdmin)
+        .then(result => {
+            console.log('inserted count', result.insertedCount)
+            res.send(result.insertedCount > 0)
+        })
+  })
+
 
   app.post('/addOrder', (req, res) => {
     const newOrdering = req.body;
@@ -69,6 +89,16 @@ client.connect(err => {
       })
     console.log(newOrdering);
   })
+
+
+
+  app.delete("/deleteProduct/:id", (req, res) => {
+    servicesCollection.deleteOne({ _id: ObjectId(req.params.id) })
+        .then(result => {
+            console.log(result);
+            res.send(result.deletedCount > 0);
+        })
+})
 
   app.post('/addService', (req, res) => {
     const newService = req.body;
